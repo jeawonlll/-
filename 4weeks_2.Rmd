@@ -1,0 +1,52 @@
+---
+title: "Untitled"
+author: "zang"
+date: "2015년 9월 29일"
+output: html_document
+---
+
+---
+#과제 2
+>data 들어가면 hcluster 시각화 레이더망 플랏처럼 시각화하고 해석 
+>데이터 시각화 - 레이더망 그래프
+>클러스터링시각화 히트맵으로하셔도됩니다~^^! 구글에찾으면 많이나올꺼에요자료~
+
+##hcluster
+```{r}
+data(mtcars)
+mtcars_hclust<-hclust(dist(scale(mtcars))^2,method = "single")
+mtcars_hclust_label<-cutree(mtcars_hclust,k=5)
+```
+
+##클러스터별로 평균값 추출하기
+```{r}
+library(dplyr)
+mtcars_plus<-mutate(mtcars,as.factor(mtcars_hclust_label))
+
+mtcars_plus<-group_by(mtcars_plus,as.factor(mtcars_hclust_label))
+
+
+mtcars_meanbyclust<-summarise(mtcars_plus,
+                              mean(mpg),mean(cyl),mean(disp),mean(hp),
+                              mean(drat),mean(wt),mean(qsec),mean(vs),
+                              mean(am),mean(gear),mean(carb))
+
+```
+
+##label생성하기
+```{r}
+mtcars_hclust_label_sort<-sort(mtcars_hclust_label)
+cluster<-data.frame("clust"=as.vector(mtcars_hclust_label_sort),"name"=names(mtcars_hclust_label_sort))
+```
+
+##radial plot 시각화
+```{r}
+
+library(plotrix)
+radial.plot(scale(mtcars_meanbyclust[,-1])*2*pi,labels=names(mtcars_meanbyclust)[-1],
+            rp.type="p",main="plot",line.col=c("red","blue","green","yellow","black"),
+            xlab = "",ylab = "",lwd=2,show.grid = T,show.grid.labels = F)
+legend(x=30,y=-10,paste("cluster",1:5),col=c("red","blue","green","yellow","black"),lty=1,lwd=2)
+legend(x=-60,y=20,cluster$name,col=rep(c("red","blue","green","yellow","black"),c(3,15,12,1,1)),lty=1)
+
+```
